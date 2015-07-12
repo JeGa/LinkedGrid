@@ -1,19 +1,40 @@
 #include <memory>
+#include <limits>
 
 namespace LinkedGrid
 {
+
+    template<class T> class Node;
+    template<class T> using NodePtr = std::shared_ptr<Node<T>>;
+
+    template<class T, class Compare = std::greater<T>>
+    class ComparePointerGreater
+    {
+        bool operator()(const std::shared_ptr<T> n1, const std::shared_ptr<T> n2) const {
+            return Compare()(*n1, *n2);
+        }
+    };
+
+    template<class T, class Compare = std::less<T>>
+    class ComparePointerLess
+    {
+        bool operator()(const std::shared_ptr<T> n1, const std::shared_ptr<T> n2) const {
+            return Compare()(*n1, *n2);
+        }
+    };
 
     template<class T>
     class Node
     {
     public:
-        using NodePtr = std::shared_ptr<Node>;
-
         Node(const T data);
         Node(const Node& node); ///< Be careful, makes a deep copy.
         Node& operator=(Node node);
         Node(Node&& node);
         ~Node();
+
+        bool operator<(const Node &other) const;
+        bool operator>(const Node &other) const;
 
         friend void swap(Node<T>& n1, Node<T>& n2)
         {
@@ -28,10 +49,22 @@ namespace LinkedGrid
 
         std::shared_ptr<T> data;
 
-        NodePtr up;
-        NodePtr down;
-        NodePtr left;
-        NodePtr right;
+        NodePtr<T> up;
+        NodePtr<T> down;
+        NodePtr<T> left;
+        NodePtr<T> right;
+
+        int x = 0;
+        int y = 0;
+
+        /**
+        * Estimated distance to goal: f(x) = g(x) + h(x).
+        */
+        int distance = 0; //std::numeric_limits<int>::max();
+
+        NodePtr<T> previous;
+
+        //bool visited = false;
     };
 
     template<class T>
@@ -68,6 +101,18 @@ namespace LinkedGrid
     template<class T>
     Node<T>::~Node()
     {
+    }
+
+    template<class T>
+    bool Node<T>::operator<(const Node &other) const
+    {
+        return distance < other.distance;
+    }
+
+    template<class T>
+    bool Node<T>::operator>(const Node &other) const
+    {
+        return distance > other.distance;
     }
 
 }

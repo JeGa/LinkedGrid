@@ -9,7 +9,7 @@ typedef struct
 	double value;
 } Data;
 
-typedef LinkedGrid::Node<Data>::NodePtr NodePtr;
+typedef LinkedGrid::NodePtr<Data> NodePtr;
 
 NodePtr createNode(const Data d)
 {
