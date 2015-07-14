@@ -1,5 +1,6 @@
 #include <memory>
 #include <limits>
+#include <map>
 
 namespace LinkedGrid
 {
@@ -7,6 +8,10 @@ namespace LinkedGrid
     template<class T> class Node;
     template<class T> using NodePtr = std::shared_ptr<Node<T>>;
 
+    /**
+    * Function object for comparing shared_ptr.
+    * (For priority queue.)
+    */
     template<class T, class Compare = std::greater<T>>
     class ComparePointerGreater
     {
@@ -15,13 +20,7 @@ namespace LinkedGrid
         }
     };
 
-    template<class T, class Compare = std::less<T>>
-    class ComparePointerLess
-    {
-        bool operator()(const std::shared_ptr<T> n1, const std::shared_ptr<T> n2) const {
-            return Compare()(*n1, *n2);
-        }
-    };
+    enum class NODE_LINK { UP = 0, DOWN, LEFT, RIGHT };
 
     template<class T>
     class Node
@@ -34,37 +33,37 @@ namespace LinkedGrid
         ~Node();
 
         bool operator<(const Node &other) const;
-        bool operator>(const Node &other) const;
 
         friend void swap(Node<T>& n1, Node<T>& n2)
         {
             using std::swap; // ADL (good style)
 
+            swap(n1.neighbors, n2.neighbors);
             swap(n1.data, n2.data);
-            swap(n1.up, n2.up);
-            swap(n1.down, n2.down);
-            swap(n1.left, n2.left);
-            swap(n1.right, n2.right);
         }
 
-        std::shared_ptr<T> data;
+        const std::map<NODE_LINK, NodePtr<T>>& getNeighbors();
+        std::shared_ptr<T> getData();
+        void setLink(NODE_LINK direction, NodePtr<T> node);
+        NodePtr<T> getLink(NODE_LINK direction);
 
-        NodePtr<T> up;
-        NodePtr<T> down;
-        NodePtr<T> left;
-        NodePtr<T> right;
+    private:
+        std::shared_ptr<T> data;
+        std::map<NODE_LINK, NodePtr<T>> neighbors;
 
         int x = 0;
         int y = 0;
 
         /**
+        * For A*.
         * Estimated distance to goal: f(x) = g(x) + h(x).
         */
-        int distance = 0; //std::numeric_limits<int>::max();
+        int distance = 0; // TODO: std::numeric_limits<int>::max();
 
+        /**
+        * For A*.
+        */
         NodePtr<T> previous;
-
-        //bool visited = false;
     };
 
     template<class T>
@@ -75,14 +74,9 @@ namespace LinkedGrid
     template<class T>
     Node<T>::Node(const Node& node) : data(std::make_shared<T>(*node.data))
     {
-        if (node.up)
-            up = std::make_shared<Node>(*node.up);
-        if (node.down)
-            down = std::make_shared<Node>(*node.down);
-        if (node.left)
-            left = std::make_shared<Node>(*node.left);
-        if (node.right)
-            right = std::make_shared<Node>(*node.right);
+        // Deep copy of the objects.
+        for (auto const & it : node.neighbors)
+            neighbors[it.first] = std::make_shared<Node>(*(it.second));
     }
 
     template<class T>
@@ -110,9 +104,27 @@ namespace LinkedGrid
     }
 
     template<class T>
-    bool Node<T>::operator>(const Node &other) const
+    const std::map<NODE_LINK, NodePtr<T>>& Node<T>::getNeighbors()
     {
-        return distance > other.distance;
+        return neighbors;
+    }
+
+    template<class T>
+    std::shared_ptr<T> Node<T>::getData()
+    {
+        return data;
+    }
+
+    template<class T>
+    void Node<T>::setLink(NODE_LINK direction, NodePtr<T> node)
+    {
+        neighbors[direction] = node;
+    }
+
+    template<class T>
+    NodePtr<T> Node<T>::getLink(NODE_LINK direction)
+    {
+        return neighbors[direction];
     }
 
 }
