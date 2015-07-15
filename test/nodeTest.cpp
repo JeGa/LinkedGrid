@@ -10,6 +10,7 @@ typedef struct
 } Data;
 
 typedef LinkedGrid::NodePtr<Data> NodePtr;
+typedef LinkedGrid::NODE_LINK LINK;
 
 NodePtr createNode(const Data d)
 {
@@ -18,12 +19,44 @@ NodePtr createNode(const Data d)
 	return ptr;
 }
 
+TEST_CASE("Getter and setter functions", "[Node]")
+{
+	LinkedGrid::Node<Data> node{{1, 10.0}};
+
+	SECTION("getData")
+	{
+		REQUIRE(node.getData()->id == 1);
+		REQUIRE(node.getData()->value == 10.0);
+	}
+
+	SECTION("Edge")
+	{
+		LinkedGrid::Edge<Data> edge{createNode({2, 20.0}), 2};
+		REQUIRE(edge.neighbor->getData()->id == 2);
+		REQUIRE(edge.cost == 2);
+		node.setEdge(LINK::UP, edge);
+
+		const std::map<LINK, LinkedGrid::Edge<Data>>& edges = node.getEdges();
+		REQUIRE(edges.size() == 1);
+		auto search = edges.find(LINK::UP);
+		REQUIRE(search != edges.end());
+		REQUIRE(search->second.neighbor->getData()->id == 2);
+	}
+
+	SECTION("Edge - Hidden edge object")
+	{
+		NodePtr up = createNode({2, 20.0});
+		node.setNeighbor(LINK::UP, up);
+
+		REQUIRE(up == node.getNeighbor(LINK::UP));
+		REQUIRE(node.getCost(LINK::UP) == 1);
+	}
+}
+
 TEST_CASE("Copy constructor test for Node", "[Node]")
 {
 	// Copy data
 	LinkedGrid::Node<Data> node{{1, 10.0}};
-	REQUIRE(node.getData()->id == 1);
-	REQUIRE(node.getData()->value == 10.0);
 
 	SECTION("Copy Node")
 	{
@@ -35,13 +68,13 @@ TEST_CASE("Copy constructor test for Node", "[Node]")
 
 	SECTION("Copy linked Node")
 	{
-		node.setLink(LinkedGrid::NODE_LINK::UP, createNode({2, 20.0}));
+		node.setNeighbor(LinkedGrid::NODE_LINK::UP, createNode({2, 20.0}));
 
 		LinkedGrid::Node<Data> nodeCopy{node};
 
-		REQUIRE(node.getLink(LinkedGrid::NODE_LINK::UP) != nodeCopy.getLink(LinkedGrid::NODE_LINK::UP));
-		REQUIRE(nodeCopy.getLink(LinkedGrid::NODE_LINK::UP)->getData()->id == 2);
-		REQUIRE(node.getLink(LinkedGrid::NODE_LINK::UP)->getData()->id == nodeCopy.getLink(LinkedGrid::NODE_LINK::UP)->getData()->id);
+		REQUIRE(node.getNeighbor(LinkedGrid::NODE_LINK::UP) != nodeCopy.getNeighbor(LinkedGrid::NODE_LINK::UP));
+		REQUIRE(nodeCopy.getNeighbor(LinkedGrid::NODE_LINK::UP)->getData()->id == 2);
+		REQUIRE(node.getNeighbor(LinkedGrid::NODE_LINK::UP)->getData()->id == nodeCopy.getNeighbor(LinkedGrid::NODE_LINK::UP)->getData()->id);
 	}
 }
 
@@ -58,33 +91,33 @@ TEST_CASE("Assignment operator test for Node", "[Node]")
 
 	SECTION("With linked node")
 	{
-		nodeAssign.setLink(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
+		nodeAssign.setNeighbor(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
 
 		node = nodeAssign;
-		REQUIRE(node.getLink(LinkedGrid::NODE_LINK::UP)->getData()->id == 3);
+		REQUIRE(node.getNeighbor(LinkedGrid::NODE_LINK::UP)->getData()->id == 3);
 	}
 }
 
 TEST_CASE("Move copy constructor test for Node", "[Node]")
 {
 	LinkedGrid::Node<Data> node{{1, 10.0}};
-	node.setLink(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
+	node.setNeighbor(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
 	Data *address = node.getData().get();
-	NodePtr linkUp = node.getLink(LinkedGrid::NODE_LINK::UP);
+	NodePtr linkUp = node.getNeighbor(LinkedGrid::NODE_LINK::UP);
 
 	LinkedGrid::Node<Data> node2{std::move(node)};
 
 	REQUIRE(address == node2.getData().get());
 	REQUIRE(node2.getData()->id == 1);
-	REQUIRE(linkUp == node2.getLink(LinkedGrid::NODE_LINK::UP));
+	REQUIRE(linkUp == node2.getNeighbor(LinkedGrid::NODE_LINK::UP));
 }
 
 TEST_CASE("Move assignment operator test for Node", "[Node]")
 {
 	LinkedGrid::Node<Data> node{{1, 10.0}};
 	Data *address = node.getData().get();
-	node.setLink(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
-	NodePtr linkUp = node.getLink(LinkedGrid::NODE_LINK::UP);
+	node.setNeighbor(LinkedGrid::NODE_LINK::UP, createNode({3, 30.0}));
+	NodePtr linkUp = node.getNeighbor(LinkedGrid::NODE_LINK::UP);
 
 	LinkedGrid::Node<Data> nodeAssigned{{2, 20.0}};
 	Data *addressAssigned = nodeAssigned.getData().get();
@@ -94,5 +127,5 @@ TEST_CASE("Move assignment operator test for Node", "[Node]")
 	REQUIRE(address == nodeAssigned.getData().get());
 	REQUIRE(nodeAssigned.getData()->id == 1);
 	REQUIRE(node.getData() == nullptr);
-	REQUIRE(linkUp == nodeAssigned.getLink(LinkedGrid::NODE_LINK::UP));
+	REQUIRE(linkUp == nodeAssigned.getNeighbor(LinkedGrid::NODE_LINK::UP));
 }

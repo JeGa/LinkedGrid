@@ -22,6 +22,31 @@ namespace LinkedGrid
 
     enum class NODE_LINK { UP = 0, DOWN, LEFT, RIGHT };
 
+    // TODO: No copy constructor etc. ...
+    template<class T>
+    struct Edge
+    {
+        NodePtr<T> neighbor;
+        int cost = 1;
+
+        Edge() {}
+
+        Edge(NodePtr<T> neighbor, int cost) :
+            neighbor(neighbor),
+            cost(cost)
+        {
+        }
+
+        // TODO: Not used
+        friend void swap(Edge<T>& e1, Edge<T>& e2)
+        {
+            using std::swap;
+
+            swap(e1.neighbor, e2.neighbor);
+            swap(e1.cost, e2.cost);
+        }
+    };
+
     template<class T>
     class Node
     {
@@ -38,18 +63,38 @@ namespace LinkedGrid
         {
             using std::swap; // ADL (good style)
 
-            swap(n1.neighbors, n2.neighbors);
+            swap(n1.edges, n2.edges);
             swap(n1.data, n2.data);
+            swap(n1.x, n2.x);
+            swap(n1.y, n2.y);
+            swap(n1.distance, n2.distance);
+            swap(n1.previous, n2.previous);
         }
 
-        const std::map<NODE_LINK, NodePtr<T>>& getNeighbors();
+        const std::map<NODE_LINK, Edge<T>>& getEdges();
+
         std::shared_ptr<T> getData();
-        void setLink(NODE_LINK direction, NodePtr<T> node);
-        NodePtr<T> getLink(NODE_LINK direction);
+
+        /**
+        * Hides the Edge object.
+        */
+        NodePtr<T> getNeighbor(NODE_LINK direction);
+
+        /**
+        * Hides the Edge object.
+        */
+        int getCost(NODE_LINK direction);
+
+        void setEdge(NODE_LINK direction, Edge<T> edge);
+
+        /**
+        * Hides the Edge object abd uses default cost 1.
+        */
+        void setNeighbor(NODE_LINK direction, NodePtr<T> node);
 
     private:
         std::shared_ptr<T> data;
-        std::map<NODE_LINK, NodePtr<T>> neighbors;
+        std::map<NODE_LINK, Edge<T>> edges;
 
         int x = 0;
         int y = 0;
@@ -58,7 +103,7 @@ namespace LinkedGrid
         * For A*.
         * Estimated distance to goal: f(x) = g(x) + h(x).
         */
-        int distance = 0; // TODO: std::numeric_limits<int>::max();
+        int distance = 0;
 
         /**
         * For A*.
@@ -72,11 +117,25 @@ namespace LinkedGrid
     }
 
     template<class T>
-    Node<T>::Node(const Node& node) : data(std::make_shared<T>(*node.data))
+    Node<T>::Node(const Node& node) :
+        x(node.x),
+        y(node.y),
+        distance(node.distance)
     {
         // Deep copy of the objects.
-        for (auto const & it : node.neighbors)
-            neighbors[it.first] = std::make_shared<Node>(*(it.second));
+        for (auto const & it : node.edges) {
+            Edge<T> e;
+            e.neighbor = std::make_shared<Node>(*(it.second.neighbor));
+            e.cost = it.second.cost;
+
+            edges[it.first] = e;
+        }
+
+        if (node.data)
+            data = std::make_shared<T>(*node.data);
+
+        if (node.previous)
+            previous = std::make_shared<Node>(*(node.previous));
     }
 
     template<class T>
@@ -104,9 +163,9 @@ namespace LinkedGrid
     }
 
     template<class T>
-    const std::map<NODE_LINK, NodePtr<T>>& Node<T>::getNeighbors()
+    const std::map<NODE_LINK, Edge<T>>&  Node<T>::getEdges()
     {
-        return neighbors;
+        return edges;
     }
 
     template<class T>
@@ -116,15 +175,28 @@ namespace LinkedGrid
     }
 
     template<class T>
-    void Node<T>::setLink(NODE_LINK direction, NodePtr<T> node)
+    NodePtr<T> Node<T>::getNeighbor(NODE_LINK direction)
     {
-        neighbors[direction] = node;
+        return edges[direction].neighbor;
     }
 
     template<class T>
-    NodePtr<T> Node<T>::getLink(NODE_LINK direction)
+    int Node<T>::getCost(NODE_LINK direction)
     {
-        return neighbors[direction];
+        return edges[direction].cost;
+    }
+
+    template<class T>
+    void Node<T>::setEdge(NODE_LINK direction, Edge<T> edge)
+    {
+        edges[direction] = edge;
+    }
+
+    template<class T>
+    void Node<T>::setNeighbor(NODE_LINK direction, NodePtr<T> node)
+    {
+        Edge<T> edge = {node, 1};
+        edges[direction] = edge;
     }
 
 }
