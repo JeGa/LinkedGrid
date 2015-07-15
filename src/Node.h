@@ -92,6 +92,13 @@ namespace LinkedGrid
         */
         void setNeighbor(NODE_LINK direction, NodePtr<T> node);
 
+        // TODO: Make seperate data structure in LinkedGrid
+        int getDistance();
+        NodePtr<T> getPreviousNode();
+        void setPrevious(NodePtr<T> previous);
+        void setDistance(int distance);
+        void setPriority(int priority);
+
     private:
         std::shared_ptr<T> data;
         std::map<NODE_LINK, Edge<T>> edges;
@@ -104,6 +111,11 @@ namespace LinkedGrid
         * Estimated distance to goal: f(x) = g(x) + h(x).
         */
         int distance = 0;
+
+        /**
+        * For A*.
+        */
+        int priority = std::numeric_limits<int>::max();
 
         /**
         * For A*.
@@ -159,7 +171,7 @@ namespace LinkedGrid
     template<class T>
     bool Node<T>::operator<(const Node &other) const
     {
-        return distance < other.distance;
+        return priority < other.priority;
     }
 
     template<class T>
@@ -197,6 +209,36 @@ namespace LinkedGrid
     {
         Edge<T> edge = {node, 1};
         edges[direction] = edge;
+    }
+
+    template<class T>
+    int Node<T>::getDistance()
+    {
+        return distance();
+    }
+
+    template<class T>
+    NodePtr<T> Node<T>::getPreviousNode()
+    {
+        return previous;
+    }
+
+    template<class T>
+    void Node<T>::setPrevious(NodePtr<T> previous)
+    {
+        this->previous = previous;
+    }
+
+    template<class T>
+    void Node<T>::setDistance(int distance)
+    {
+        this->distance = distance;
+    }
+
+    template<class T>
+    void Node<T>::setPriority(int priority)
+    {
+        this->priority = priority;
     }
 
 }
