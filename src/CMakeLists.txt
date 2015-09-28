@@ -4,4 +4,4 @@ list(REMOVE_ITEM sources ${main})
 
 add_library(lgLib ${sources})
 add_executable(lg ${main})
-link_libraries(lg lgLib)
+target_link_libraries(lg lgLib)

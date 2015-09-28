@@ -1,3 +1,6 @@
+#ifndef LINKEDGRID_H
+#define LINKEDGRID_H
+
 #include "Node.h"
 #include <memory>
 #include <queue>
@@ -19,12 +22,13 @@ namespace LinkedGrid
         LinkedGrid(LinkedGrid&& grid);
         ~LinkedGrid();
 
-        //void add(int x, int y, const T data);
+        void add(int x, int y, const T data);
 
         /**
         * Uses A* to find shortest path.
         */
         NodePtr<T> get(int x, int y);
+        NodePtr<T> get(NodePtr<T> start, int x, int y);
         int heuristic(const NodePtr<T> from, int toX, int toY) const;
 
         friend void swap(LinkedGrid<T>& g1, LinkedGrid<T>& g2)
@@ -42,16 +46,9 @@ namespace LinkedGrid
 
         /**
         * Priority queue for A* open list.
-        * Ordered with reference to the distance.
+        * Ordered with reference to the priority.
         */
-
-        /*std::priority_queue<
-            NodePtr<T>,
-            std::vector<NodePtr<T>>,
-            ComparePointerGreater<Node<T>>> openList;*/
-
-        std::set<NodePtr<T>> openList;
-
+        std::vector<NodePtr<T>> openList;
 
         /**
         * Vector for A* closed list.
@@ -92,54 +89,77 @@ namespace LinkedGrid
     {
     }
 
-    /*template<class T>
-    LinkedGrid<T>::add(int x, int y, const T data)
+    // TODO: This is REALLY not good.
+    template<class T>
+    void LinkedGrid<T>::add(int x, int y, const T data)
     {
-        Node<T>::NodePtr node = std::make_shared<Node>(data);
-        Node<T>::NodePtr ptr;
-
-        ptr = get(--x, y); // Left
-        if (ptr != nullptr) {
-            ptr->right = node;
-            node->left = ptr;
+        // TODO: MAKE better
+        if (!rootNode) {
+            if (x == 0 && y == 0)
+                rootNode = std::make_shared<Node<T>>(x, y, data);
+            return;
         }
 
-        ptr = get(++x, y); // Right
+        NodePtr<T> node = std::make_shared<Node<T>>(x, y, data);
+        NodePtr<T> ptr;
+
+        ptr = get((x - 1), y); // Left
         if (ptr != nullptr) {
-            ptr->left = node;
-            node->right = ptr;
+            ptr->setNeighbor(NODE_LINK::RIGHT, node);
+            node->setNeighbor(NODE_LINK::LEFT, ptr);
         }
 
-        ptr = get(x, --y); // Down
+        ptr = get((x + 1), y); // Right
         if (ptr != nullptr) {
-            ptr->up = node;
-            node->down = ptr;
+            ptr->setNeighbor(NODE_LINK::LEFT, node);
+            node->setNeighbor(NODE_LINK::RIGHT, ptr);
         }
 
-        ptr = get(x, ++y); // Up
+        ptr = get(x, (y - 1)); // Down
         if (ptr != nullptr) {
-            ptr->down = node;
-            node->up = ptr;
+            ptr->setNeighbor(NODE_LINK::UP, node);
+            node->setNeighbor(NODE_LINK::DOWN, ptr);
+        }
+
+        ptr = get(x, (y + 1)); // Up
+        if (ptr != nullptr) {
+            ptr->setNeighbor(NODE_LINK::DOWN, node);
+            node->setNeighbor(NODE_LINK::UP, ptr);
         }
     }
-    */
+
+    template<class T>
+    NodePtr<T> LinkedGrid<T>::get(int x, int y)
+    {
+        return get(rootNode, x, y);
+    }
 
     /**
     * A* algorithm.
     */
+    // TODO: Make more efficient. No duplication etc.
+    // TODO: Change thing with missing root Node
     template<class T>
-    NodePtr<T> LinkedGrid<T>::get(int x, int y)
+    NodePtr<T> LinkedGrid<T>::get(NodePtr<T> start, int x, int y)
     {
-        bool found = false;
+        if (!start)
+            return nullptr;
 
-        openList.push_back(rootNode);
+        bool found = false;
+        NodePtr<T> next;
+
+        openList.clear();
+        closedList.clear();
+
+        openList.push_back(start);
         std::push_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
 
         while (!(found || openList.empty())) {
             std::pop_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
-            NodePtr<T> next = openList.pop_back();
+            next = openList.back();
+            openList.pop_back();
 
-            if (next.x == x && next.y == y) {
+            if (next->x == x && next->y == y) {
                 found = true;
                 break;
             }
@@ -150,27 +170,30 @@ namespace LinkedGrid
                 if (closedList.find(neighbor) != closedList.end())
                     continue;
 
-                int distance = next.getDistance() + it.second.cost;
+                int distance = next->getDistance() + it.second.cost;
 
-                auto search = openList.find(neighbor);
+                auto search = std::find(openList.begin(), openList.end(), neighbor);
 
                 if (search == openList.end()) {
                     neighbor->setPrevious(next);
                     neighbor->setDistance(distance);
-                    neighbor->setPriotity(distance + heuristic(neighbor, x, y));
+                    neighbor->setPriority(distance + heuristic(neighbor, x, y));
 
-                    openList.push_back(neighbor);
-                    std::push_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
-                } else if (distance < (*search)->getDistance()) {
-                    neighbor->setPrevious(next);
-                    neighbor->setDistance(distance);
-                    neighbor->setPriotity(distance + heuristic(neighbor, x, y));
-                    std::make_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
+                    if (distance < (*search)->getDistance()) {
+                        std::make_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
+                    } else {
+                        openList.push_back(neighbor);
+                        std::push_heap(openList.begin(), openList.end(), ComparePointerGreater<Node<T>>());
+                    }
                 }
             }
 
-            closedList.push(next);
+            closedList.insert(next);
         }
+
+        if (found)
+            return next;
+        return nullptr;
     }
 
     /**
@@ -179,7 +202,9 @@ namespace LinkedGrid
     template<class T>
     int LinkedGrid<T>::heuristic(const NodePtr<T> from, int toX, int toY) const
     {
-        return abs(toX - from.x) + abs(toY - from.y);
+        return abs(toX - from->x) + abs(toY - from->y);
     }
 
 }
+
+#endif

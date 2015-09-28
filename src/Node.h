@@ -1,3 +1,6 @@
+#ifndef NODE_H
+#define NODE_H
+
 #include <memory>
 #include <limits>
 #include <map>
@@ -13,7 +16,7 @@ namespace LinkedGrid
     * (For priority queue.)
     */
     template<class T, class Compare = std::greater<T>>
-    class ComparePointerGreater
+    struct ComparePointerGreater
     {
         bool operator()(const std::shared_ptr<T> n1, const std::shared_ptr<T> n2) const {
             return Compare()(*n1, *n2);
@@ -51,13 +54,15 @@ namespace LinkedGrid
     class Node
     {
     public:
-        Node(const T data);
+        Node(int x, int y, const T data);
+        Node(const T data); ///< Default coordinates x = 0, y = 0
         Node(const Node& node); ///< Be careful, makes a deep copy.
         Node& operator=(Node node);
         Node(Node&& node);
         ~Node();
 
         bool operator<(const Node &other) const;
+        bool operator>(const Node &other) const;
 
         friend void swap(Node<T>& n1, Node<T>& n2)
         {
@@ -103,6 +108,7 @@ namespace LinkedGrid
         std::shared_ptr<T> data;
         std::map<NODE_LINK, Edge<T>> edges;
 
+    public: // TODO: Correct encapsulation
         int x = 0;
         int y = 0;
 
@@ -122,6 +128,14 @@ namespace LinkedGrid
         */
         NodePtr<T> previous;
     };
+
+    template<class T>
+    Node<T>::Node(int x, int y, const T data) :
+        data(std::make_shared<T>(data)),
+        x(x),
+        y(y)
+    {
+    }
 
     template<class T>
     Node<T>::Node(const T data) : data(std::make_shared<T>(data))
@@ -175,6 +189,12 @@ namespace LinkedGrid
     }
 
     template<class T>
+    bool Node<T>::operator>(const Node &other) const
+    {
+        return priority > other.priority;
+    }
+
+    template<class T>
     const std::map<NODE_LINK, Edge<T>>&  Node<T>::getEdges()
     {
         return edges;
@@ -214,7 +234,7 @@ namespace LinkedGrid
     template<class T>
     int Node<T>::getDistance()
     {
-        return distance();
+        return distance;
     }
 
     template<class T>
@@ -242,3 +262,5 @@ namespace LinkedGrid
     }
 
 }
+
+#endif

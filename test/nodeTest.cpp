@@ -2,22 +2,7 @@
 #include "Node.h"
 #include <memory>
 #include <utility>
-
-typedef struct
-{
-	int id;
-	double value;
-} Data;
-
-typedef LinkedGrid::NodePtr<Data> NodePtr;
-typedef LinkedGrid::NODE_LINK LINK;
-
-NodePtr createNode(const Data d)
-{
-	NodePtr ptr = std::make_shared<LinkedGrid::Node<Data>>(d);
-
-	return ptr;
-}
+#include "helper.h"
 
 TEST_CASE("Getter and setter functions", "[Node]")
 {
