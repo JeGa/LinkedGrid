@@ -2,7 +2,6 @@
 #define NODE_H
 
 #include <memory>
-#include <limits>
 #include <map>
 
 namespace LinkedGrid
@@ -12,17 +11,6 @@ template <class T> class Node;
 template <class T> class Edge;
 template <class T> using NodePtr = std::shared_ptr<Node<T> >;
 template <class T> using EdgePtr = std::shared_ptr<Edge<T> >;
-
-/**
-* Function object for comparing shared_ptr.
-* (For priority queue.)
-*/
-template <class T, class Compare = std::greater<T> > struct ComparePointerGreater {
-    bool operator()(const std::shared_ptr<T> n1, const std::shared_ptr<T> n2) const
-    {
-        return Compare()(*n1, *n2);
-    }
-};
 
 enum class NODE_LINK { UP = 0, DOWN, LEFT, RIGHT };
 
@@ -88,8 +76,6 @@ public:
         swap(n1.data, n2.data);
         swap(n1.x, n2.x);
         swap(n1.y, n2.y);
-        // TODO swap(n1.distance, n2.distance);
-        // TODO swap(n1.previous, n2.previous);
     }
 
     std::shared_ptr<T> getData();
@@ -116,37 +102,12 @@ public:
     */
     void setNeighbor(NODE_LINK direction, NodePtr<T> node);
 
-    // TODO: Make seperate data structure in LinkedGrid
-    // TODO int getDistance();
-    // TODO NodePtr<T> getPreviousNode();
-    // TODO void setPrevious(NodePtr<T> previous);
-    // TODO void setDistance(int distance);
-    // TODO void setPriority(int priority);
-
     int x = 0;
     int y = 0;
 
 private:
     std::shared_ptr<T> data;
     std::map<NODE_LINK, EdgePtr<T> > edges;
-
-    // TODO: Correct encapsulation
-
-    /**
-    * For A*.
-    * Estimated distance to goal: f(x) = g(x) + h(x).
-    */
-    // TODO int distance = 0;
-
-    /**
-    * For A*.
-    */
-    // TODO int priority = std::numeric_limits<int>::max();
-
-    /**
-    * For A*.
-    */
-    // TODO NodePtr<T> previous;
 };
 
 template <class T>
@@ -167,26 +128,14 @@ template <class T>
 Node<T>::Node(const Node& node)
     : x(node.x)
     , y(node.y)
-// TODO distance(node.distance),
 {
     // Deep copy of the objects.
 
-    for(auto const& it : node.edges) {
+    for(auto const& it : node.edges)
         edges[it.first] = std::make_shared<Edge<T> >(*(it.second));
-    }
-    /*for (auto const & it : node.edges) {
-        Edge<T> e;
-        e.neighbor = std::make_shared<Node>(*(it.second.neighbor));
-        e.cost = it.second.cost;
-
-        edges[it.first] = e;
-    }*/
 
     if(node.data)
         data = std::make_shared<T>(*node.data);
-
-    // TODO if (node.previous)
-    // TODO previous = std::make_shared<Node>(*(node.previous));
 }
 
 template <class T> Node<T>& Node<T>::operator=(Node node)
@@ -202,18 +151,6 @@ template <class T> Node<T>::Node(Node&& node)
 
 template <class T> Node<T>::~Node()
 {
-}
-
-// TODO
-template <class T> bool Node<T>::operator<(const Node& other) const
-{
-    return false; // TODO priority < other.priority;
-}
-
-// TODO
-template <class T> bool Node<T>::operator>(const Node& other) const
-{
-    return true; // TODO priority > other.priority;
 }
 
 template <class T> const std::map<NODE_LINK, EdgePtr<T> >& Node<T>::getEdges()
@@ -236,7 +173,7 @@ template <class T> int Node<T>::getCost(NODE_LINK direction)
     return edges[direction]->cost;
 }
 
-template <class T> void Node<T>::setEdge(NODE_LINK direction, EdgePtr<T> edge) // TODO ADD PTR
+template <class T> void Node<T>::setEdge(NODE_LINK direction, EdgePtr<T> edge)
 {
     edges[direction] = edge;
 }
@@ -245,40 +182,6 @@ template <class T> void Node<T>::setNeighbor(NODE_LINK direction, NodePtr<T> nod
 {
     edges[direction] = std::make_shared<Edge<T> >(node, 1);
 }
-
-// TODO: Move all functions above to LinkedGrid Class.
-
-/*
-    template<class T>
-    int Node<T>::getDistance()
-    {
-        return distance;
-    }
-
-    template<class T>
-    NodePtr<T> Node<T>::getPreviousNode()
-    {
-        return previous;
-    }
-
-    template<class T>
-    void Node<T>::setPrevious(NodePtr<T> previous)
-    {
-        this->previous = previous;
-    }
-
-    template<class T>
-    void Node<T>::setDistance(int distance)
-    {
-        this->distance = distance;
-    }
-
-    template<class T>
-    void Node<T>::setPriority(int priority)
-    {
-        this->priority = priority;
-    }
-*/
 }
 
 #endif
