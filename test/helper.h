@@ -1,6 +1,8 @@
 #ifndef HELPER_H
 #define HELPER_H
 
+#include "Node.h"
+
 typedef struct
 {
 	int id;

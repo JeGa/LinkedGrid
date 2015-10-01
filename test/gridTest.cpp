@@ -1,10 +1,10 @@
 #include "catch/catch.hpp"
-#include "LinkedGrid.h"
+//#include "LinkedGrid.h"
 #include "helper.h"
 
 TEST_CASE("LinkedGrid basic")
 {
-    LinkedGrid::LinkedGrid<Data> grid;
+    //LinkedGrid::LinkedGrid<Data> grid;
 
     //REQUIRE(grid.add(1, 0, {1, 10.0}) == nullptr);
 

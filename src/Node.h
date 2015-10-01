@@ -25,7 +25,6 @@ namespace LinkedGrid
 
     enum class NODE_LINK { UP = 0, DOWN, LEFT, RIGHT };
 
-    // TODO: No copy constructor etc. ...
     template<class T>
     struct Edge
     {
@@ -39,8 +38,25 @@ namespace LinkedGrid
             cost(cost)
         {
         }
+        
+        Edge(const Edge& edge) :
+            cost(edge.cost)
+        {
+            if (edge.neighbor)
+                neighbor = std::make_shared<Node<T>>(*(edge.neighbor));
+        }
+        
+        Edge& operator=(Edge edge)
+        {
+            swap(*this, edge);
+            return *this;
+        }
+        
+        Edge(Edge&& edge)
+        {
+            swap(*this, edge);
+        }
 
-        // TODO: Not used
         friend void swap(Edge<T>& e1, Edge<T>& e2)
         {
             using std::swap;
@@ -72,13 +88,13 @@ namespace LinkedGrid
             swap(n1.data, n2.data);
             swap(n1.x, n2.x);
             swap(n1.y, n2.y);
-            swap(n1.distance, n2.distance);
-            swap(n1.previous, n2.previous);
+            //TODO swap(n1.distance, n2.distance);
+            //TODO swap(n1.previous, n2.previous);
         }
 
-        const std::map<NODE_LINK, Edge<T>>& getEdges();
-
         std::shared_ptr<T> getData();
+
+        const std::map<NODE_LINK, Edge<T>>& getEdges();
 
         /**
         * Hides the Edge object.
@@ -93,40 +109,41 @@ namespace LinkedGrid
         void setEdge(NODE_LINK direction, Edge<T> edge);
 
         /**
-        * Hides the Edge object abd uses default cost 1.
+        * Hides the Edge object and uses default cost 1.
         */
         void setNeighbor(NODE_LINK direction, NodePtr<T> node);
 
         // TODO: Make seperate data structure in LinkedGrid
-        int getDistance();
-        NodePtr<T> getPreviousNode();
-        void setPrevious(NodePtr<T> previous);
-        void setDistance(int distance);
-        void setPriority(int priority);
+        //TODO int getDistance();
+        //TODO NodePtr<T> getPreviousNode();
+        //TODO void setPrevious(NodePtr<T> previous);
+        //TODO void setDistance(int distance);
+        //TODO void setPriority(int priority);
+
+        int x = 0;
+        int y = 0;
 
     private:
         std::shared_ptr<T> data;
         std::map<NODE_LINK, Edge<T>> edges;
 
-    public: // TODO: Correct encapsulation
-        int x = 0;
-        int y = 0;
+    // TODO: Correct encapsulation
 
         /**
         * For A*.
         * Estimated distance to goal: f(x) = g(x) + h(x).
         */
-        int distance = 0;
+        //TODO int distance = 0;
 
         /**
         * For A*.
         */
-        int priority = std::numeric_limits<int>::max();
+        //TODO int priority = std::numeric_limits<int>::max();
 
         /**
         * For A*.
         */
-        NodePtr<T> previous;
+        //TODO NodePtr<T> previous;
     };
 
     template<class T>
@@ -146,22 +163,24 @@ namespace LinkedGrid
     Node<T>::Node(const Node& node) :
         x(node.x),
         y(node.y),
-        distance(node.distance)
+        //TODO distance(node.distance),
+        edges(node.edges)
     {
+        
         // Deep copy of the objects.
-        for (auto const & it : node.edges) {
+        /*for (auto const & it : node.edges) {
             Edge<T> e;
             e.neighbor = std::make_shared<Node>(*(it.second.neighbor));
             e.cost = it.second.cost;
 
             edges[it.first] = e;
-        }
+        }*/
 
         if (node.data)
             data = std::make_shared<T>(*node.data);
 
-        if (node.previous)
-            previous = std::make_shared<Node>(*(node.previous));
+        //TODO if (node.previous)
+            //TODO previous = std::make_shared<Node>(*(node.previous));
     }
 
     template<class T>
@@ -182,16 +201,18 @@ namespace LinkedGrid
     {
     }
 
+    //TODO 
     template<class T>
     bool Node<T>::operator<(const Node &other) const
     {
-        return priority < other.priority;
+        return false; //TODO priority < other.priority;
     }
 
+    //TODO 
     template<class T>
     bool Node<T>::operator>(const Node &other) const
     {
-        return priority > other.priority;
+        return true; //TODO priority > other.priority;
     }
 
     template<class T>
@@ -231,6 +252,9 @@ namespace LinkedGrid
         edges[direction] = edge;
     }
 
+    // TODO: Move all functions above to LinkedGrid Class.
+
+/*
     template<class T>
     int Node<T>::getDistance()
     {
@@ -260,6 +284,7 @@ namespace LinkedGrid
     {
         this->priority = priority;
     }
+*/
 
 }
 
