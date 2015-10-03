@@ -65,9 +65,6 @@ public:
     Node(Node&& node);
     ~Node();
 
-    bool operator<(const Node& other) const;
-    bool operator>(const Node& other) const;
-
     friend void swap(Node<T>& n1, Node<T>& n2)
     {
         using std::swap; // ADL (good style)
@@ -112,9 +109,9 @@ private:
 
 template <class T>
 Node<T>::Node(int x, int y, const T data)
-    : data(std::make_shared<T>(data))
-    , x(x)
+    : x(x)
     , y(y)
+    , data(std::make_shared<T>(data))
 {
 }
 

@@ -1,9 +1,20 @@
+/**
+* Saves the A* algortihm information inside the node instead of separate data structures.
+*/
+
+#ifndef ASTARNODE_H
+#define ASTARNODE_H
+
 #include <memory>
 #include <limits>
+#include <utility>
 #include "node.h"
 
 namespace LinkedGrid
 {
+
+template <class T> class AStarNode;
+template <class T> using AStarNodePtr = std::shared_ptr<AStarNode<T> >;
 
 /**
 * Function object for comparing shared_ptr.
@@ -19,17 +30,14 @@ template <class T, class Compare = std::greater<T> > struct ComparePointerGreate
 template <class T> class AStarNode : public Node<T>
 {
 public:
-    // TODO!! FORWARDING
-
-    AStarNode()
-    {
-    }
+    using Node<T>::Node;
 
     AStarNode(const AStarNode& node)
         : Node<T>::Node(node)
         , distance(node.distance)
         , priority(node.priority)
     {
+        // TODO: Is that okay?
         if(node.previous)
             previous = std::make_shared<AStarNode>(*(node.previous));
     }
@@ -42,7 +50,7 @@ public:
     }
 
     AStarNode(AStarNode&& node)
-        : Node<T>::Node(std::forward<Node>(node))
+        : Node<T>::Node(std::forward<Node<T> >(node))
     {
         swap(*this, node);
     }
@@ -70,8 +78,6 @@ public:
         return priority > other.priority;
     }
 
-    // TODO: Correct encapsulation
-
     /**
     * For A*.
     * Estimated distance to goal: f(x) = g(x) + h(x).
@@ -89,3 +95,5 @@ public:
     std::shared_ptr<AStarNode> previous;
 };
 }
+
+#endif

@@ -1,21 +1,21 @@
 #include "catch/catch.hpp"
 #include "Node.h"
+#include "helper.h"
 #include <memory>
 #include <utility>
-#include "helper.h"
 
 TEST_CASE("Basic Edge test", "[Edge]")
 {
     NodePtr node = createNode({ 1, 10.0 });
     LinkedGrid::Edge<Data> edge(node, 1);
 
-    SECTION("Copy Construction")
+    SECTION("Copy construction")
     {
         LinkedGrid::Edge<Data> edge1(edge);
         REQUIRE(edge.neighbor != edge1.neighbor);
     }
 
-    SECTION("Copy Assignment")
+    SECTION("Copy assignment")
     {
         NodePtr node1 = createNode({ 2, 20.0 });
         LinkedGrid::Edge<Data> edge1(node1, 2);
@@ -28,14 +28,14 @@ TEST_CASE("Basic Edge test", "[Edge]")
         REQUIRE(edge1.neighbor->getData()->value == 10.0); // Same data.
     }
 
-    SECTION("Move Construction")
+    SECTION("Move construction")
     {
         LinkedGrid::Edge<Data> edge1(std::move(edge));
         REQUIRE(edge1.cost == 1);
         REQUIRE(edge1.neighbor == node);
     }
 
-    SECTION("Move Assignment")
+    SECTION("Move assignment")
     {
         NodePtr node1 = createNode({ 2, 20.0 });
         LinkedGrid::Edge<Data> edge1(node, 2);

@@ -1,21 +1,26 @@
 #include "catch/catch.hpp"
-//#include "LinkedGrid.h"
+#include "LinkedGrid.h"
 #include "AStarNode.h"
 #include "helper.h"
 
 TEST_CASE("LinkedGrid basic")
 {
-    // LinkedGrid::LinkedGrid<Data> grid;
+    LinkedGrid::LinkedGrid<Data> grid;
 
-    // REQUIRE(grid.add(1, 0, {1, 10.0}) == nullptr);
+    REQUIRE(grid.add(1, 0, { 2, 20.0 }) == false);
 
-    // grid.add(0, 0, {1, 10.0});
-    // grid.add(1, 0, {1, 10.0});
-    // grid.add(-1, 0, {1, 10.0});
-    // grid.add(0, 1, {1, 10.0});
-    // grid.add(0, -1, {1, 10.0});
+    grid.add(0, 0, { 2, 20.0 });
+    REQUIRE(grid.getData(0, 0)->id == 2);
 
-    // NodePtr ptr = grid.get(0, 0);
-    // WARN("Size = " << ptr->getEdges().size());
-    // REQUIRE(ptr->getData()->id == 99);
+    REQUIRE(grid.add(1, 0, { 1, 10.0 }));
+    REQUIRE(grid.add(-1, 0, { 1, 10.0 }));
+    REQUIRE(grid.add(0, 1, { 1, 10.0 }));
+    REQUIRE(grid.add(0, -1, { 1, 10.0 }));
+
+    REQUIRE(grid.add(3, 0, { 1, 10.0 }) == false);
+    REQUIRE(grid.add(2, 0, { 1, 10.0 }));
+    REQUIRE(grid.add(3, 0, { 1, 10.0 }));
+
+    WARN("Size = " << grid.nodeCounter);
+    REQUIRE(grid.nodeCounter == 7);
 }
