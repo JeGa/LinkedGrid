@@ -1,4 +1,4 @@
-// TODO: Remove
+// TODO: Remove function
 
 #ifndef LINKEDGRID_H
 #define LINKEDGRID_H
@@ -10,8 +10,7 @@
 #include <set>
 #include <cstdlib>
 #include <algorithm>
-
-#include <iostream>
+#include <queue>
 
 namespace LinkedGrid
 {
@@ -31,9 +30,27 @@ public:
     * Uses A* to find shortest path.
     */
     AStarNodePtr<T> get(int x, int y);
-    std::shared_ptr<T> getData(int x, int y);
+
+    /**
+     * Starts A* search from a desired start node.
+     */
     AStarNodePtr<T> get(AStarNodePtr<T> start, int x, int y);
+
+    /**
+     * Hide the node pointer.
+     */
+    std::shared_ptr<T> getData(int x, int y);
+
+    /**
+     * Manhatten distance.
+     */
     int heuristic(const AStarNodePtr<T> from, int toX, int toY) const;
+
+    /**
+     * Returns vector with pointers with all nodes in the grid.
+     * Aquired with breadth-first search.
+     */
+    std::vector<AStarNodePtr<T> > getAllNodes();
 
     friend void swap(LinkedGrid<T>& g1, LinkedGrid<T>& g2)
     {
@@ -156,6 +173,7 @@ template <class T> std::shared_ptr<T> LinkedGrid<T>::getData(int x, int y)
 /**
 * A* algorithm.
 */
+// TODO: Thats a quick implementation
 // TODO: Make more efficient. No duplication etc.
 // TODO: Change thing with missing root Node
 template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int x, int y)
@@ -178,8 +196,8 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
         openList.pop_back();
 
         // TODO
-        int xtmp = next->x;
-        int ytmp = next->y;
+        // int xtmp = next->x;
+        // int ytmp = next->y;
 
         if(next->x == x && next->y == y) {
             found = true;
@@ -190,9 +208,11 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
             // Create temporary shared_ptr
             AStarNodePtr<T> neighbor = std::static_pointer_cast<AStarNode<T> >(it.second->neighbor);
 
-            int xtmp2 = neighbor->x;
-            int ytmp2 = neighbor->y;
+            // TODO
+            // int xtmp2 = neighbor->x;
+            // int ytmp2 = neighbor->y;
 
+            // TODO: Bool visited is probably better ... but it needs to be dynamic then ...
             if(closedList.find(neighbor) != closedList.end())
                 continue;
 
@@ -222,12 +242,34 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
     return nullptr;
 }
 
-/**
-* Manhatten distance.
-*/
 template <class T> int LinkedGrid<T>::heuristic(const AStarNodePtr<T> from, int toX, int toY) const
 {
     return abs(toX - from->x) + abs(toY - from->y);
+}
+
+// TODO
+template <class T> std::vector<AStarNodePtr<T> > LinkedGrid<T>::getAllNodes()
+{
+    // TODO: Vector not optimal
+    // But set would be not in correct order.
+    std::vector<AStarNodePtr<T> > nodes;
+    std::queue<AStarNodePtr<T> > queue;
+
+    queue.push(rootNode);
+
+    while(!queue.empty()) {
+        AStarNodePtr<T> node = queue.front();
+        queue.pop();
+        nodes.push_back(node);
+
+        for(auto i : node->getAllNeighbors()) {
+            if(std::find(nodes.begin(), nodes.end(), i) == nodes.end()) {
+                queue.push(std::static_pointer_cast<AStarNode<T> >(i));
+            }
+        }
+    }
+
+    return nodes;
 }
 }
 

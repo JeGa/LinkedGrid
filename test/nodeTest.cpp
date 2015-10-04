@@ -84,6 +84,22 @@ TEST_CASE("Getter and setter functions", "[Node]")
 
         REQUIRE(up == node.getNeighbor(LINK::UP));
         REQUIRE(node.getCost(LINK::UP) == 1);
+
+        node.setNeighbor(LINK::LEFT, createNode({ 5, 20.0 }));
+        node.setNeighbor(LINK::RIGHT, createNode({ 3, 20.0 }));
+        node.setNeighbor(LINK::DOWN, createNode({ 4, 20.0 }));
+
+        int count = 0;
+        for(auto i : node.getAllNeighbors()) {
+            ++count;
+            WARN("Neighbor: " << i->getData()->id);
+        }
+
+        count = 0;
+        for(auto i : node.getAllNeighbors()) {
+            ++count;
+            WARN("Neighbor: " << i->getData()->id);
+        }
     }
 }
 

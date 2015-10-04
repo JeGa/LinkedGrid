@@ -23,4 +23,8 @@ TEST_CASE("LinkedGrid basic")
 
     WARN("Size = " << grid.nodeCounter);
     REQUIRE(grid.nodeCounter == 7);
+
+    // Traverse all
+    std::vector<AStarNodePtr> nodes = grid.getAllNodes();
+    REQUIRE(nodes.size() == 7);
 }

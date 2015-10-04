@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <map>
+#include <vector>
 
 namespace LinkedGrid
 {
@@ -12,7 +13,7 @@ template <class T> class Edge;
 template <class T> using NodePtr = std::shared_ptr<Node<T> >;
 template <class T> using EdgePtr = std::shared_ptr<Edge<T> >;
 
-enum class NODE_LINK { UP = 0, DOWN, LEFT, RIGHT };
+enum class NODE_LINK { UP = 0, RIGHT, DOWN, LEFT };
 
 template <class T> struct Edge {
     NodePtr<T> neighbor;
@@ -83,6 +84,16 @@ public:
     * Hides the Edge object.
     */
     NodePtr<T> getNeighbor(NODE_LINK direction);
+
+    /**
+    * Hides the Edge object.
+    */
+    std::vector<NodePtr<T> > getAllNeighbors();
+
+    /**
+    * Hides the Edge object.
+    */
+    std::vector<NodePtr<T> > getAllNeighborsOrdered();
 
     /**
     * Hides the Edge object.
@@ -163,6 +174,23 @@ template <class T> std::shared_ptr<T> Node<T>::getData()
 template <class T> NodePtr<T> Node<T>::getNeighbor(NODE_LINK direction)
 {
     return edges[direction]->neighbor;
+}
+
+template <class T> std::vector<NodePtr<T> > Node<T>::getAllNeighbors()
+{
+    std::vector<NodePtr<T> > neighbors;
+    for(auto& i : edges)
+        neighbors.push_back(i.second->neighbor);
+    return neighbors;
+}
+
+// TODO: Do I need that?
+template <class T> std::vector<NodePtr<T> > Node<T>::getAllNeighborsOrdered()
+{
+    std::vector<NodePtr<T> > neighbors;
+    for(int i = 0; i < 4; ++i)
+        neighbors.push_back(edges[i]->neighbor);
+    return neighbors;
 }
 
 template <class T> int Node<T>::getCost(NODE_LINK direction)

@@ -2,6 +2,8 @@
 * Saves the A* algortihm information inside the node instead of separate data structures.
 */
 
+// TODO: Split implementation and declaration.
+
 #ifndef ASTARNODE_H
 #define ASTARNODE_H
 
