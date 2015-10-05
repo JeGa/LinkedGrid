@@ -37,6 +37,10 @@ public:
         for(int i = 0; i < grid.nodeCounter; ++i) {
             rectangles[i].setPosition(centerX + nodes[i]->x * RECTANGLE_SIZE_X,
                                       centerY + nodes[i]->y * RECTANGLE_SIZE_Y);
+
+            // rectangles[i].setOutlineThickness(1);
+            // rectangles[i].setOutlineColor(sf::Color(255, 255, 255));
+
             if(ownColor)
                 rectangles[i].setFillColor(nodes[i]->getData()->color);
             else
@@ -64,6 +68,8 @@ int main(int argc, char** argv)
     grid.add(4, 0, {});
 
     sf::RenderWindow window(sf::VideoMode(800, 600), "LinkedGrid GUI Test");
+    sf::View view(sf::Vector2f(200, 200), sf::Vector2f(300, 300));
+    window.setView(view);
     window.setFramerateLimit(60);
     LinkedGridDrawer gridDrawer(200, 200);
 
