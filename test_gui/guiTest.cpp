@@ -4,51 +4,85 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-typedef struct {
-    int id;
-    double value;
-} Data;
+static const int RECTANGLE_SIZE_X = 10;
+static const int RECTANGLE_SIZE_Y = 10;
+
+struct Data {
+    Data(sf::Color color = sf::Color(100, 250, 50))
+        : color(color)
+    {
+    }
+
+    sf::Color color;
+};
+
+typedef struct Data Data;
+
+class LinkedGridDrawer
+{
+public:
+    LinkedGridDrawer(int centerX, int centerY, sf::Color color = sf::Color(100, 250, 50))
+        : centerX(centerX)
+        , centerY(centerY)
+        , color(color)
+    {
+    }
+
+    void draw(LinkedGrid::LinkedGrid<Data>& grid, sf::RenderWindow& window, bool ownColor)
+    {
+        std::vector<LinkedGrid::AStarNodePtr<Data> > nodes = grid.getAllNodes();
+        std::vector<sf::RectangleShape> rectangles(
+            grid.nodeCounter, sf::RectangleShape(sf::Vector2f(RECTANGLE_SIZE_X, RECTANGLE_SIZE_Y)));
+
+        for(int i = 0; i < grid.nodeCounter; ++i) {
+            rectangles[i].setPosition(centerX + nodes[i]->x * RECTANGLE_SIZE_X,
+                                      centerY + nodes[i]->y * RECTANGLE_SIZE_Y);
+            if(ownColor)
+                rectangles[i].setFillColor(nodes[i]->getData()->color);
+            else
+                rectangles[i].setFillColor(color);
+
+            window.draw(rectangles[i]);
+        }
+    }
+
+    int centerX;
+    int centerY;
+    sf::Color color;
+};
 
 int main(int argc, char** argv)
 {
     LinkedGrid::LinkedGrid<Data> grid;
 
-    grid.add(0, 0, { 2, 20.0 });
-    grid.add(1, 0, { 2, 20.0 });
-    grid.add(0, 1, { 2, 20.0 });
-    grid.add(-1, 0, { 2, 20.0 });
-    grid.add(2, 0, { 2, 20.0 });
-    grid.add(3, 0, { 2, 20.0 });
-    grid.add(4, 0, { 2, 20.0 });
+    grid.add(0, 0, { sf::Color(0, 100, 200) });
+    grid.add(1, 0, { sf::Color(10, 100, 10) });
+    grid.add(0, 1, { sf::Color(100, 100, 100) });
+    grid.add(-1, 0, {});
+    grid.add(2, 0, {});
+    grid.add(3, 0, {});
+    grid.add(4, 0, {});
 
-    sf::RenderWindow App(sf::VideoMode(800, 600), "myproject");
+    sf::RenderWindow window(sf::VideoMode(800, 600), "LinkedGrid GUI Test");
+    window.setFramerateLimit(60);
+    LinkedGridDrawer gridDrawer(200, 200);
 
-    while(App.isOpen()) {
+    while(window.isOpen()) {
         sf::Event Event;
-        while(App.pollEvent(Event)) {
+        while(window.pollEvent(Event)) {
             if(Event.type == sf::Event::Closed)
-                App.close();
+                window.close();
         }
-        App.clear(sf::Color::Black);
+        window.clear(sf::Color::Black);
 
         if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            sf::Vector2i localPosition = sf::Mouse::getPosition(App);
+            sf::Vector2i localPosition = sf::Mouse::getPosition(window);
             localPosition.x -= 100;
             localPosition.y -= 100;
         }
 
-        std::vector<LinkedGrid::AStarNodePtr<Data> > nodes = grid.getAllNodes();
-        std::vector<sf::RectangleShape> rectangles(grid.nodeCounter, sf::RectangleShape(sf::Vector2f(10, 10)));
+        gridDrawer.draw(grid, window, true);
 
-        for(int i = 0; i < grid.nodeCounter; ++i) {
-            rectangles[i].setPosition(100 + nodes[i]->x * 10, 100 + nodes[i]->y * 10);
-            rectangles[i].setFillColor(sf::Color(100, 250, 50));
-        }
-
-        for(auto i : rectangles) {
-            App.draw(i);
-        }
-
-        App.display();
+        window.display();
     }
 }
