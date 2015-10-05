@@ -57,6 +57,7 @@ public:
         using std::swap; // ADL (good style)
 
         swap(g1.rootNode, g2.rootNode);
+        swap(g1.nodeCounter, g2.nodeCounter);
     }
 
     int nodeCounter = 0;
@@ -66,18 +67,6 @@ private:
     * Is at index [0,0].
     */
     AStarNodePtr<T> rootNode;
-
-    /**
-    * Priority queue for A* open list.
-    * Ordered with reference to the priority.
-    */
-    std::vector<AStarNodePtr<T> > openList;
-
-    /**
-    * Vector for A* closed list.
-    * Uses the default shared_ptr less comparison.
-    */
-    std::set<AStarNodePtr<T> > closedList;
 };
 
 // Does nothing. First add() creates rootNode.
@@ -88,6 +77,7 @@ template <class T> LinkedGrid<T>::LinkedGrid()
 template <class T>
 LinkedGrid<T>::LinkedGrid(const LinkedGrid& grid)
     : rootNode(std::make_shared<T>(*grid.rootNode))
+    , nodeCounter(grid.nodeCounter)
 {
     /*
     * Copying the rootNode is enough, since Node makes a deep copy.
@@ -181,11 +171,23 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
     if(!start)
         return nullptr;
 
+    /**
+    * Priority queue for A* open list.
+    * Ordered with reference to the priority.
+    */
+    std::vector<AStarNodePtr<T> > openList;
+
+    /**
+    * Vector for A* closed list.
+    * Uses the default shared_ptr less comparison.
+    */
+    std::set<AStarNodePtr<T> > closedList;
+
     bool found = false;
     AStarNodePtr<T> next;
 
-    openList.clear();
-    closedList.clear();
+    // openList.clear();
+    // closedList.clear();
 
     openList.push_back(start);
     std::push_heap(openList.begin(), openList.end(), ComparePointerGreater<AStarNode<T> >());
