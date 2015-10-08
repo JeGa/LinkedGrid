@@ -1,3 +1,7 @@
+/**
+* Helper functions for unit tests.
+*/
+
 #ifndef HELPER_H
 #define HELPER_H
 
