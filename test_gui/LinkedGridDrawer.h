@@ -10,15 +10,20 @@
 
 class LinkedGridDrawer
 {
-private:
+public:
+    int centerX;
+    int centerY;
+
     static const int RECTANGLE_SIZE_X;
     static const int RECTANGLE_SIZE_Y;
+    static const int OUTLINE_THICKNESS;
+    static const sf::Vector2f RECTANGLE_SIZE;
 
-public:
-    static void draw(LinkedGrid::LinkedGrid<Data>& grid,
-                     sf::RenderWindow& window,
-                     int centerX,
-                     int centerY);
+    LinkedGridDrawer(int centerX, int centerY);
+
+    void draw(LinkedGrid::LinkedGrid<Data>& grid, sf::RenderWindow& window);
+
+    sf::Vector2i globalToGridCoordinates(sf::Vector2f global);
 };
 
 #endif

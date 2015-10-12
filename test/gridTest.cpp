@@ -28,3 +28,26 @@ TEST_CASE("LinkedGrid basic")
     std::vector<AStarNodePtr> nodes = grid.getAllNodes();
     REQUIRE(nodes.size() == 7);
 }
+
+TEST_CASE("Nodes with two links")
+{
+    LinkedGrid::LinkedGrid<Data> grid;
+    
+    grid.add(0, 0, { 2, 20.0 });
+    grid.add(1, 0, { 2, 20.0 });
+    grid.add(0, 1, { 2, 20.0 });
+    REQUIRE(grid.getAllNodes().size() == 3);
+    
+    grid.add(1, 1, { 2, 20.0 });
+    REQUIRE(grid.getAllNodes().size() == 4);
+}
+
+TEST_CASE("Nodes with three links")
+{
+    
+}
+
+TEST_CASE("Nodes with four links")
+{
+    //015229239549
+}

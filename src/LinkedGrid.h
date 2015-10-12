@@ -1,4 +1,5 @@
 // TODO: Remove function
+// TODO: Replace if node index is already present.
 
 #ifndef LINKEDGRID_H
 #define LINKEDGRID_H
@@ -60,6 +61,7 @@ public:
         swap(g1.nodeCounter, g2.nodeCounter);
     }
 
+    // TODO: Should use size of vector for that.
     int nodeCounter = 0;
 
 private:
@@ -111,6 +113,10 @@ template <class T> bool LinkedGrid<T>::add(int x, int y, const T data)
         }
         return false;
     }
+    
+    // Already node present?
+    if (get(x, y))
+        return false;
 
     AStarNodePtr<T> node = std::make_shared<AStarNode<T> >(x, y, data);
     AStarNodePtr<T> ptr;
@@ -129,6 +135,8 @@ template <class T> bool LinkedGrid<T>::add(int x, int y, const T data)
         node->setNeighbor(NODE_LINK::RIGHT, ptr);
         success = true;
     }
+    
+//    int s1 = getAllNodes().size();
 
     ptr = get(x, (y - 1)); // Down
     if(ptr != nullptr) {
@@ -136,6 +144,8 @@ template <class T> bool LinkedGrid<T>::add(int x, int y, const T data)
         node->setNeighbor(NODE_LINK::DOWN, ptr);
         success = true;
     }
+    
+    //int s2 = getAllNodes().size();
 
     ptr = get(x, (y + 1)); // Up
     if(ptr != nullptr) {
@@ -197,10 +207,6 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
         next = openList.back();
         openList.pop_back();
 
-        // TODO
-        // int xtmp = next->x;
-        // int ytmp = next->y;
-
         if(next->x == x && next->y == y) {
             found = true;
             break;
@@ -209,10 +215,6 @@ template <class T> AStarNodePtr<T> LinkedGrid<T>::get(AStarNodePtr<T> start, int
         for(auto const& it : next->getEdges()) {
             // Create temporary shared_ptr
             AStarNodePtr<T> neighbor = std::static_pointer_cast<AStarNode<T> >(it.second->neighbor);
-
-            // TODO
-            // int xtmp2 = neighbor->x;
-            // int ytmp2 = neighbor->y;
 
             // TODO: Bool visited is probably better ... but it needs to be dynamic then ...
             if(closedList.find(neighbor) != closedList.end())
@@ -254,19 +256,21 @@ template <class T> std::vector<AStarNodePtr<T> > LinkedGrid<T>::getAllNodes()
 {
     // TODO: Vector not optimal
     // But set would be not in correct order.
-    std::vector<AStarNodePtr<T> > nodes;
+    std::vector<AStarNodePtr<T> > nodes; // Visited
     std::queue<AStarNodePtr<T> > queue;
 
     queue.push(rootNode);
+    nodes.push_back(rootNode);
 
     while(!queue.empty()) {
         AStarNodePtr<T> node = queue.front();
         queue.pop();
-        nodes.push_back(node);
 
         for(auto i : node->getAllNeighbors()) {
             if(std::find(nodes.begin(), nodes.end(), i) == nodes.end()) {
-                queue.push(std::static_pointer_cast<AStarNode<T> >(i));
+                AStarNodePtr<T> visitNode = std::static_pointer_cast<AStarNode<T> >(i);
+                queue.push(visitNode);
+                nodes.push_back(visitNode);
             }
         }
     }

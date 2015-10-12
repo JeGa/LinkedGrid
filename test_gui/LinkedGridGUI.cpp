@@ -1,8 +1,11 @@
 #include "LinkedGridGUI.h"
 
+#include <iostream>
+
 LinkedGridGUI::LinkedGridGUI()
     : renderWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "LinkedGrid GUI Test")
-    , view(sf::Vector2f(200, 200), sf::Vector2f(300, 300))
+    , view(sf::Vector2f(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT))
+    , gridDrawer(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 {
     createControlWindow();
     renderWindow.resetGLStates();
@@ -11,12 +14,19 @@ LinkedGridGUI::LinkedGridGUI()
 
     // TODO
     grid.add(0, 0, { sf::Color(0, 100, 200) });
-    grid.add(1, 0, { sf::Color(10, 100, 10) });
+    /*grid.add(1, 0, { sf::Color(10, 100, 10) });
     grid.add(0, 1, { sf::Color(100, 100, 100) });
+    grid.add(0, 2, { sf::Color(100, 100, 100) });
+    grid.add(0, 3, { sf::Color(100, 100, 100) });
     grid.add(-1, 0, {});
     grid.add(2, 0, {});
     grid.add(3, 0, {});
-    grid.add(4, 0, {});
+    grid.add(4, 0, {});*/
+    grid.add(1, 0, {});
+    grid.add(2, 0, {});
+    grid.add(3, 0, {});
+    //grid.add(0, 1, {});
+    grid.add(1, 1, {});
 
     entryNodeCount->SetText(std::to_string(grid.nodeCounter));
 }
@@ -59,6 +69,36 @@ void LinkedGridGUI::createControlWindow()
     controlWindow->Add(box);
 }
 
+sf::Vector2i LinkedGridGUI::getGridCoordinates()
+{
+    // TODO: Problem here
+    sf::Vector2i pixelPosition = sf::Mouse::getPosition(renderWindow);
+    std::cout << "Pixel: " << pixelPosition.x << " " << pixelPosition.y << std::endl;
+    sf::Vector2f worldPosition = renderWindow.mapPixelToCoords(pixelPosition);
+    std::cout << "World: " << worldPosition.x << " " << worldPosition.y << std::endl;
+
+    sf::Vector2i gridPosition = gridDrawer.globalToGridCoordinates(worldPosition);
+
+    return gridPosition;
+}
+
+void LinkedGridGUI::drawTile(int centerX, int centerY, sf::Vector2i gridPosition)
+{
+    sf::RectangleShape rectangle(LinkedGridDrawer::RECTANGLE_SIZE);
+
+    int centerXTransformed = centerX - LinkedGridDrawer::RECTANGLE_SIZE_X / 2;
+    int centerYTransformed = centerY - LinkedGridDrawer::RECTANGLE_SIZE_Y / 2;
+
+    rectangle.setPosition(
+        centerXTransformed + gridPosition.x * LinkedGridDrawer::RECTANGLE_SIZE_X + LinkedGridDrawer::OUTLINE_THICKNESS,
+        centerYTransformed - gridPosition.y * LinkedGridDrawer::RECTANGLE_SIZE_Y + LinkedGridDrawer::OUTLINE_THICKNESS);
+
+    rectangle.setOutlineThickness(LinkedGridDrawer::OUTLINE_THICKNESS);
+    rectangle.setOutlineColor(sf::Color(255, 255, 255));
+    rectangle.setFillColor(sf::Color::Transparent);
+    renderWindow.draw(rectangle);
+}
+
 void LinkedGridGUI::OnButtonClick()
 {
 }
@@ -71,6 +111,8 @@ void LinkedGridGUI::run()
     sf::Event event;
     sf::Clock clock;
 
+    int delta = 0;
+
     while(renderWindow.isOpen()) {
         while(renderWindow.pollEvent(event)) {
             desktop.HandleEvent(event);
@@ -79,45 +121,60 @@ void LinkedGridGUI::run()
                 renderWindow.close();
             }
 
-            // Todo
+            // TODO
             if(event.type == sf::Event::KeyPressed) {
+                int step = 10;
                 if(event.key.code == sf::Keyboard::Up) {
+                    view.move(0, -step);
                 } else if(event.key.code == sf::Keyboard::Right) {
+                    view.move(step, 0);
                 } else if(event.key.code == sf::Keyboard::Down) {
+                    view.move(0, step);
                 } else if(event.key.code == sf::Keyboard::Left) {
+                    view.move(-step, 0);
                 }
             }
 
             if(event.type == sf::Event::MouseWheelScrolled) {
-                if(event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
-                    // std::cout << "wheel type: vertical" << std::endl;
-                } else if(event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel) {
-                    // std::cout << "wheel type: horizontal" << std::endl;
-                } else {
-                    // std::cout << "wheel type: unknown" << std::endl;
+                delta += event.mouseWheelScroll.delta;
+                int scrollSpeed = 5;
+
+                if(delta >= scrollSpeed) {
+                    view.zoom(0.5f);
+                    delta = 0;
+                } else if(delta <= -scrollSpeed) {
+                    view.zoom(1.5f);
+                    delta = 0;
                 }
-                // std::cout << "wheel movement: " << event.mouseWheelScroll.delta << std::endl;
-                // std::cout << "mouse x: " << event.mouseWheelScroll.x << std::endl;
-                // std::cout << "mouse y: " << event.mouseWheelScroll.y << std::endl;
             }
 
             if(event.type == sf::Event::MouseButtonPressed) {
                 if(event.mouseButton.button == sf::Mouse::Left) {
-                    sf::Vector2i localPosition = sf::Mouse::getPosition(renderWindow);
-                    localPosition.x -= 100;
-                    localPosition.y -= 100;
-
-                    entryTileX->SetText(std::to_string(localPosition.x));
-                    entryTileY->SetText(std::to_string(localPosition.y));
+                    sf::Vector2i gridPosition = getGridCoordinates();
+                    grid.add(gridPosition.x, gridPosition.y, {});
+                    
+                    entryNodeCount->SetText(std::to_string(grid.getAllNodes().size()));
                 }
             }
+
+            if(event.type == sf::Event::MouseMoved) {
+                sf::Vector2i gridPosition = getGridCoordinates();
+                entryTileX->SetText(std::to_string(gridPosition.x));
+                entryTileY->SetText(std::to_string(gridPosition.y));
+            }
+
+            if(event.type == sf::Event::Resized)
+                view.setSize(sf::Vector2f(event.size.width, event.size.height));
         }
 
         desktop.Update(clock.restart().asSeconds());
 
         renderWindow.clear();
 
-        LinkedGridDrawer::draw(grid, renderWindow, 100, 100);
+        renderWindow.setView(view);
+
+        gridDrawer.draw(grid, renderWindow);
+        drawTile(gridDrawer.centerX, gridDrawer.centerY, getGridCoordinates());
         sfgui.Display(renderWindow);
 
         renderWindow.display();
