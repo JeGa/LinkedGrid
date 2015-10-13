@@ -6,21 +6,21 @@ const int LinkedGridDrawer::OUTLINE_THICKNESS = 1;
 const sf::Vector2f LinkedGridDrawer::RECTANGLE_SIZE = { RECTANGLE_SIZE_X - 2 * OUTLINE_THICKNESS,
                                                         RECTANGLE_SIZE_Y - 2 * OUTLINE_THICKNESS };
 
-LinkedGridDrawer::LinkedGridDrawer(int centerX, int centerY)
-    : centerX(centerX)
+LinkedGridDrawer::LinkedGridDrawer(std::weak_ptr<LinkedGrid::LinkedGrid<Data> > grid, int centerX, int centerY)
+    : grid(grid)
+    , centerX(centerX)
     , centerY(centerY)
 {
 }
 
-void LinkedGridDrawer::draw(LinkedGrid::LinkedGrid<Data>& grid, sf::RenderWindow& window)
+void LinkedGridDrawer::draw(sf::RenderWindow& window)
 {
-    std::vector<LinkedGrid::AStarNodePtr<Data> > nodes = grid.getAllNodes();
-    std::vector<sf::RectangleShape> rectangles(grid.nodeCounter, sf::RectangleShape(RECTANGLE_SIZE));
+    std::vector<sf::RectangleShape> rectangles(nodes.size(), sf::RectangleShape(RECTANGLE_SIZE));
 
     int centerXTransformed = centerX - RECTANGLE_SIZE_X / 2;
     int centerYTransformed = centerY - RECTANGLE_SIZE_Y / 2;
 
-    for(int i = 0; i < grid.nodeCounter; ++i) {
+    for(unsigned int i = 0; i < nodes.size(); ++i) {
         rectangles[i].setPosition(centerXTransformed + nodes[i]->x * RECTANGLE_SIZE_X + OUTLINE_THICKNESS,
                                   centerYTransformed - nodes[i]->y * RECTANGLE_SIZE_Y + OUTLINE_THICKNESS);
 
@@ -33,23 +33,30 @@ void LinkedGridDrawer::draw(LinkedGrid::LinkedGrid<Data>& grid, sf::RenderWindow
     }
 }
 
+void LinkedGridDrawer::update()
+{
+    if(auto sharedPointer = grid.lock()) {
+        nodes = sharedPointer->getAllNodes();
+    }
+}
+
 sf::Vector2i LinkedGridDrawer::globalToGridCoordinates(sf::Vector2f global)
 {
     sf::Vector2i gridTile;
 
     float x = global.x - centerX;
     float y = global.y - centerY;
-    
+
     // TODO: Must go better.
     int xCorrect = RECTANGLE_SIZE_X / 2;
     int yCorrect = RECTANGLE_SIZE_Y / 2;
-    
-    if (x < 0) 
+
+    if(x < 0)
         xCorrect *= -1;
-    
-    if (y < 0)
+
+    if(y < 0)
         yCorrect *= -1;
-        
+
     x += xCorrect;
     y += yCorrect;
 

@@ -7,10 +7,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <memory>
 
 class LinkedGridDrawer
 {
 public:
+    std::weak_ptr<LinkedGrid::LinkedGrid<Data> > grid;
+    std::vector<LinkedGrid::AStarNodePtr<Data> > nodes;
     int centerX;
     int centerY;
 
@@ -19,9 +22,17 @@ public:
     static const int OUTLINE_THICKNESS;
     static const sf::Vector2f RECTANGLE_SIZE;
 
-    LinkedGridDrawer(int centerX, int centerY);
+    LinkedGridDrawer(std::weak_ptr<LinkedGrid::LinkedGrid<Data> > grid, int centerX, int centerY);
 
-    void draw(LinkedGrid::LinkedGrid<Data>& grid, sf::RenderWindow& window);
+    /**
+     * Draws the state (grid) from the last update() call.
+     */
+    void draw(sf::RenderWindow& window);
+
+    /**
+     * Updates the internal state (grid) which is drawn with draw().
+     */
+    void update();
 
     sf::Vector2i globalToGridCoordinates(sf::Vector2f global);
 };

@@ -44,7 +44,7 @@ private:
     void OnButtonClick();
 
     // LinkedGrid
-    LinkedGrid::LinkedGrid<Data> grid;
+    std::shared_ptr<LinkedGrid::LinkedGrid<Data>> grid;
     LinkedGridDrawer gridDrawer;
 };
 

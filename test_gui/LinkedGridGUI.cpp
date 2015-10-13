@@ -5,30 +5,22 @@
 LinkedGridGUI::LinkedGridGUI()
     : renderWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "LinkedGrid GUI Test")
     , view(sf::Vector2f(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT))
-    , gridDrawer(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+    , grid(std::make_shared<LinkedGrid::LinkedGrid<Data> >())
+    , gridDrawer(grid, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 {
     createControlWindow();
     renderWindow.resetGLStates();
     renderWindow.setFramerateLimit(60);
     renderWindow.setView(view);
 
-    // TODO
-    grid.add(0, 0, { sf::Color(0, 100, 200) });
-    /*grid.add(1, 0, { sf::Color(10, 100, 10) });
-    grid.add(0, 1, { sf::Color(100, 100, 100) });
-    grid.add(0, 2, { sf::Color(100, 100, 100) });
-    grid.add(0, 3, { sf::Color(100, 100, 100) });
-    grid.add(-1, 0, {});
-    grid.add(2, 0, {});
-    grid.add(3, 0, {});
-    grid.add(4, 0, {});*/
-    grid.add(1, 0, {});
-    grid.add(2, 0, {});
-    grid.add(3, 0, {});
-    //grid.add(0, 1, {});
-    grid.add(1, 1, {});
+    grid->add(0, 0, { sf::Color(0, 100, 200) });
+    grid->add(1, 0, {});
+    grid->add(2, 0, {});
+    grid->add(3, 0, {});
+    grid->add(1, 1, {});
+    gridDrawer.update();
 
-    entryNodeCount->SetText(std::to_string(grid.nodeCounter));
+    entryNodeCount->SetText(std::to_string(grid->nodeCounter));
 }
 
 LinkedGridGUI::~LinkedGridGUI()
@@ -71,12 +63,8 @@ void LinkedGridGUI::createControlWindow()
 
 sf::Vector2i LinkedGridGUI::getGridCoordinates()
 {
-    // TODO: Problem here
     sf::Vector2i pixelPosition = sf::Mouse::getPosition(renderWindow);
-    std::cout << "Pixel: " << pixelPosition.x << " " << pixelPosition.y << std::endl;
     sf::Vector2f worldPosition = renderWindow.mapPixelToCoords(pixelPosition);
-    std::cout << "World: " << worldPosition.x << " " << worldPosition.y << std::endl;
-
     sf::Vector2i gridPosition = gridDrawer.globalToGridCoordinates(worldPosition);
 
     return gridPosition;
@@ -148,13 +136,23 @@ void LinkedGridGUI::run()
                 }
             }
 
+            sf::Vector2i gridPosition;
             if(event.type == sf::Event::MouseButtonPressed) {
+
                 if(event.mouseButton.button == sf::Mouse::Left) {
-                    sf::Vector2i gridPosition = getGridCoordinates();
-                    grid.add(gridPosition.x, gridPosition.y, {});
-                    
-                    entryNodeCount->SetText(std::to_string(grid.getAllNodes().size()));
+                    gridPosition = getGridCoordinates();
                 }
+            }
+
+            if(event.type == sf::Event::MouseButtonReleased) {
+                sf::Vector2i gridPositionEnd = getGridCoordinates();
+                for(int i = gridPosition.x; i <= gridPositionEnd.x; ++i) {
+                    for(int j = gridPosition.y; j <= gridPositionEnd.y; ++j) {
+                        grid->add(i, j, {});
+                    }
+                }
+                entryNodeCount->SetText(std::to_string(grid->getAllNodes().size()));
+                gridDrawer.update();
             }
 
             if(event.type == sf::Event::MouseMoved) {
@@ -173,7 +171,7 @@ void LinkedGridGUI::run()
 
         renderWindow.setView(view);
 
-        gridDrawer.draw(grid, renderWindow);
+        gridDrawer.draw(renderWindow);
         drawTile(gridDrawer.centerX, gridDrawer.centerY, getGridCoordinates());
         sfgui.Display(renderWindow);
 
