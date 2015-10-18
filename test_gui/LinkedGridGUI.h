@@ -28,21 +28,23 @@ private:
     sf::Vector2f viewPosition;
     sf::Vector2f viewSize;
 
+    // Control window
     sfg::Window::Ptr controlWindow;
     sfg::Label::Ptr labelNodeCount;
-    sfg::Entry::Ptr entryNodeCount;
+    sfg::Label::Ptr nodeCountValue;
 
     sfg::Label::Ptr labelTileX;
-    sfg::Entry::Ptr entryTileX;
+    sfg::Label::Ptr tileXValue;
 
     sfg::Label::Ptr labelTileY;
-    sfg::Entry::Ptr entryTileY;
+    sfg::Label::Ptr tileYValue;
 
     void createControlWindow();
+    void OnButtonClick();
+    
     sf::Vector2i getGridCoordinates();
     void drawTile(int centerX, int centerY, sf::Vector2i gridPosition);
-    void OnButtonClick();
-
+    
     // LinkedGrid
     std::shared_ptr<LinkedGrid::LinkedGrid<Data>> grid;
     LinkedGridDrawer gridDrawer;

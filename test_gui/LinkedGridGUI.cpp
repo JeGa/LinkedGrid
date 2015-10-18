@@ -20,7 +20,7 @@ LinkedGridGUI::LinkedGridGUI()
     grid->add(1, 1, {});
     gridDrawer.update();
 
-    entryNodeCount->SetText(std::to_string(grid->nodeCounter));
+    nodeCountValue->SetText(std::to_string(grid->nodeCounter));
 }
 
 LinkedGridGUI::~LinkedGridGUI()
@@ -32,31 +32,45 @@ void LinkedGridGUI::createControlWindow()
     controlWindow = sfg::Window::Create();
     controlWindow->SetTitle("LinkedGrid Control");
 
+    auto frameNodeCount = sfg::Frame::Create("");
+    auto boxNodeCount = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
     labelNodeCount = sfg::Label::Create("Number of nodes:");
-    entryNodeCount = sfg::Entry::Create("0");
+    nodeCountValue = sfg::Label::Create("0");
 
+    boxNodeCount->Pack(labelNodeCount);
+    boxNodeCount->Pack(nodeCountValue);
+    frameNodeCount->Add(boxNodeCount);
+
+    auto frameTileX = sfg::Frame::Create("");
+    auto boxTileX = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
     labelTileX = sfg::Label::Create("Tile X:");
-    entryTileX = sfg::Entry::Create("-");
+    tileXValue = sfg::Label::Create("-");
 
+    boxTileX->Pack(labelTileX);
+    boxTileX->Pack(tileXValue);
+    frameTileX->Add(boxTileX);
+
+    auto frameTileY = sfg::Frame::Create("");
+    auto boxTileY = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
     labelTileY = sfg::Label::Create("Tile Y:");
-    entryTileY = sfg::Entry::Create("-");
+    tileYValue = sfg::Label::Create("-");
+
+    boxTileY->Pack(labelTileY);
+    boxTileY->Pack(tileYValue);
+    frameTileY->Add(boxTileY);
 
     auto button = sfg::Button::Create("Greet SFGUI!");
     button->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&LinkedGridGUI::OnButtonClick, this));
 
-    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.0f);
-    auto boxInfo = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
+    auto box = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
+    // auto boxInfo = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
     // auto box = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
 
-    box->Pack(button, false);
-    boxInfo->Pack(labelNodeCount);
-    boxInfo->Pack(entryNodeCount);
-    boxInfo->Pack(labelTileX);
-    boxInfo->Pack(entryTileX);
-    boxInfo->Pack(labelTileY);
-    boxInfo->Pack(entryTileY);
+    // box->Pack(button, false);
 
-    box->Pack(boxInfo);
+    box->Pack(frameNodeCount);
+    box->Pack(frameTileX);
+    box->Pack(frameTileY);
 
     controlWindow->Add(box);
 }
@@ -87,6 +101,18 @@ void LinkedGridGUI::drawTile(int centerX, int centerY, sf::Vector2i gridPosition
     renderWindow.draw(rectangle);
 }
 
+// TODO
+/*
+void LinkedGrid::drawSelectionBox()
+{
+    if () {
+        drawTile()
+    }
+}
+
+void LinkedGrid
+ * */
+
 void LinkedGridGUI::OnButtonClick()
 {
 }
@@ -101,6 +127,9 @@ void LinkedGridGUI::run()
 
     int delta = 0;
 
+    // For group select.
+    sf::Vector2i gridPositionGroupStart;
+
     while(renderWindow.isOpen()) {
         while(renderWindow.pollEvent(event)) {
             desktop.HandleEvent(event);
@@ -109,7 +138,6 @@ void LinkedGridGUI::run()
                 renderWindow.close();
             }
 
-            // TODO
             if(event.type == sf::Event::KeyPressed) {
                 int step = 10;
                 if(event.key.code == sf::Keyboard::Up) {
@@ -136,29 +164,37 @@ void LinkedGridGUI::run()
                 }
             }
 
-            sf::Vector2i gridPosition;
             if(event.type == sf::Event::MouseButtonPressed) {
-
                 if(event.mouseButton.button == sf::Mouse::Left) {
-                    gridPosition = getGridCoordinates();
+                    gridPositionGroupStart = getGridCoordinates();
                 }
             }
 
             if(event.type == sf::Event::MouseButtonReleased) {
-                sf::Vector2i gridPositionEnd = getGridCoordinates();
-                for(int i = gridPosition.x; i <= gridPositionEnd.x; ++i) {
-                    for(int j = gridPosition.y; j <= gridPositionEnd.y; ++j) {
-                        grid->add(i, j, {});
+                if(event.mouseButton.button == sf::Mouse::Left) {
+                    sf::Vector2i gridPositionGroupEnd = getGridCoordinates();
+
+                    int xStep = 1;
+                    if(gridPositionGroupStart.x > gridPositionGroupEnd.x)
+                        xStep = -1;
+                    int yStep = 1;
+                    if(gridPositionGroupStart.y > gridPositionGroupEnd.y)
+                        yStep = -1;
+
+                    for(int x = gridPositionGroupStart.x; x != gridPositionGroupEnd.x + xStep; x += xStep) {
+                        for(int y = gridPositionGroupStart.y; y != gridPositionGroupEnd.y + yStep; y += yStep) {
+                            grid->add(x, y, {});
+                        }
                     }
+                    nodeCountValue->SetText(std::to_string(grid->getAllNodes().size()));
+                    gridDrawer.update();
                 }
-                entryNodeCount->SetText(std::to_string(grid->getAllNodes().size()));
-                gridDrawer.update();
             }
 
             if(event.type == sf::Event::MouseMoved) {
                 sf::Vector2i gridPosition = getGridCoordinates();
-                entryTileX->SetText(std::to_string(gridPosition.x));
-                entryTileY->SetText(std::to_string(gridPosition.y));
+                tileXValue->SetText(std::to_string(gridPosition.x));
+                tileYValue->SetText(std::to_string(gridPosition.y));
             }
 
             if(event.type == sf::Event::Resized)
@@ -173,6 +209,7 @@ void LinkedGridGUI::run()
 
         gridDrawer.draw(renderWindow);
         drawTile(gridDrawer.centerX, gridDrawer.centerY, getGridCoordinates());
+        // TODO: drawSelectionBox();
         sfgui.Display(renderWindow);
 
         renderWindow.display();
